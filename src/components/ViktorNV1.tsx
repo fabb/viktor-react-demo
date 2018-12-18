@@ -7,17 +7,11 @@ const velocityOff = 0
 
 class ViktorNV1 extends React.Component {
     render() {
-        return (
-            <ViktorNV1SynthContextProvider>
-                <ViktorNV1SynthUI />
-            </ViktorNV1SynthContextProvider>
-        )
+        return <ViktorNV1SynthContainer>{props => <ViktorNV1SynthUI {...props} />}</ViktorNV1SynthContainer>
     }
 }
 
-const ViktorNV1SynthContext = React.createContext({})
-
-class ViktorNV1SynthContextProvider extends React.Component {
+class ViktorNV1SynthContainer extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
@@ -88,7 +82,7 @@ class ViktorNV1SynthContextProvider extends React.Component {
         const patchLibrary = this.state.patchLibrary
         const patchNames = patchLibrary && patchLibrary.getDefaultNames && patchLibrary.getDefaultNames()
         const selectedPatchName = patchLibrary && patchLibrary.getSelected && patchLibrary.getSelected().name
-        const contextValue = {
+        const renderFuncProps = {
             startContextIfNotStarted: this.startContextIfNotStarted,
             noteOn: this.noteOn,
             noteOff: this.noteOff,
@@ -96,19 +90,15 @@ class ViktorNV1SynthContextProvider extends React.Component {
             selectedPatchName: selectedPatchName,
             onPatchChange: this.onPatchChange
         }
-        return <ViktorNV1SynthContext.Provider value={contextValue}>{this.props.children}</ViktorNV1SynthContext.Provider>
+        return this.props.children(renderFuncProps)
     }
 }
 
 const ViktorNV1SynthUI = props => (
-    <ViktorNV1SynthContext.Consumer>
-        {value => (
-            <div>
-                <PatchSelect {...value} />
-                <Keyboard {...value} />
-            </div>
-        )}
-    </ViktorNV1SynthContext.Consumer>
+    <div>
+        <PatchSelect {...props} />
+        <Keyboard {...props} />
+    </div>
 )
 
 const PatchSelect = ({ patchNames, selectedPatchName, onPatchChange }) => {
