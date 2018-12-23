@@ -134,15 +134,18 @@ const ViktorNV1SynthUI = (props: ViktorNV1SynthContainerRenderFuncProps) => (
 )
 
 const PatchSelect = ({ patchNames, selectedPatchName, onPatchChange }: Pick<ViktorNV1SynthContainerRenderFuncProps, 'patchNames' | 'selectedPatchName' | 'onPatchChange'>) => {
+    const selectRef = React.createRef<HTMLSelectElement>()
     return (
         <div>
             <label htmlFor="patch">Patch: </label>
             <select
+                ref={selectRef}
                 id="patch"
                 value={selectedPatchName}
                 onChange={event => {
                     const newPatchName = event.target.value
                     onPatchChange({ newPatchName })
+                    selectRef.current!.blur()
                 }}
             >
                 {patchNames
