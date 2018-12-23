@@ -1,5 +1,5 @@
-import * as React from "react"
-import * as NV1Engine from "viktor-nv1-engine"
+import * as React from 'react'
+import * as NV1Engine from 'viktor-nv1-engine'
 
 const midiNoteOn = 144
 const midiNoteOff = 128
@@ -18,11 +18,11 @@ class ViktorNV1SynthContainer extends React.Component {
             store: {
                 get: function(name) {},
                 set: function(name, data) {},
-                remove: function(name) {}
+                remove: function(name) {},
             },
             dawEngine: {},
             patchLibrary: {},
-            selectedPatchName: ""
+            selectedPatchName: '',
         }
     }
 
@@ -38,7 +38,7 @@ class ViktorNV1SynthContainer extends React.Component {
         this.setState({
             dawEngine: dawEngine,
             patchLibrary: patchLibrary,
-            selectedPatchName: patchLibrary.getSelected().name
+            selectedPatchName: patchLibrary.getSelected().name,
         })
     }
 
@@ -49,9 +49,9 @@ class ViktorNV1SynthContainer extends React.Component {
     startContextIfNotStarted = () => {
         // audiocontext initially is in suspended state for most browsers, needs to be started on first user interaction
         const audioContext = this.state.dawEngine.audioContext
-        if (audioContext.state !== "running") {
+        if (audioContext.state !== 'running') {
             audioContext.resume().then(() => {
-                console.log("Playback resumed successfully")
+                console.log('Playback resumed successfully')
             })
         }
     }
@@ -62,19 +62,19 @@ class ViktorNV1SynthContainer extends React.Component {
         const patch = patchLibrary.getSelected().patch
         this.state.dawEngine.loadPatch(patch)
         this.setState({
-            selectedPatchName: patchLibrary.getSelected().name
+            selectedPatchName: patchLibrary.getSelected().name,
         })
     }
 
     noteOn = ({ note, velocity }) => {
         this.state.dawEngine.externalMidiMessage({
-            data: [midiNoteOn, note, velocity]
+            data: [midiNoteOn, note, velocity],
         })
     }
 
     noteOff = ({ note }) => {
         this.state.dawEngine.externalMidiMessage({
-            data: [midiNoteOff, note, velocityOff]
+            data: [midiNoteOff, note, velocityOff],
         })
     }
 
@@ -88,7 +88,7 @@ class ViktorNV1SynthContainer extends React.Component {
             noteOff: this.noteOff,
             patchNames: patchNames,
             selectedPatchName: selectedPatchName,
-            onPatchChange: this.onPatchChange
+            onPatchChange: this.onPatchChange,
         }
         return this.props.children(renderFuncProps)
     }
@@ -121,7 +121,7 @@ const PatchSelect = ({ patchNames, selectedPatchName, onPatchChange }) => {
                               </option>
                           )
                       })
-                    : "loading..."}
+                    : 'loading...'}
             </select>
         </div>
     )
