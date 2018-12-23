@@ -1,5 +1,7 @@
 import * as React from 'react'
 import * as NV1Engine from 'viktor-nv1-engine'
+import { Piano, KeyboardShortcuts, MidiNumbers } from 'react-piano'
+import 'react-piano/dist/styles.css'
 
 const midiNoteOn = 144
 const midiNoteOff = 128
@@ -158,18 +160,26 @@ const PatchSelect = ({ patchNames, selectedPatchName, onPatchChange }: Pick<Vikt
 }
 
 const Keyboard = ({ startContextIfNotStarted, noteOn, noteOff }: Pick<ViktorNV1SynthContainerRenderFuncProps, 'startContextIfNotStarted' | 'noteOn' | 'noteOff'>) => {
-    const note = 64
+    const firstNote = MidiNumbers.fromNote('c3')
+    const lastNote = MidiNumbers.fromNote('f5')
+    const keyboardShortcuts = KeyboardShortcuts.create({
+        firstNote: firstNote,
+        lastNote: lastNote,
+        keyboardConfig: KeyboardShortcuts.HOME_ROW,
+    })
+
     return (
-        <button
-            onMouseDown={() => {
+        <Piano
+            noteRange={{ first: firstNote, last: lastNote }}
+            playNote={(midiNumber: number) => {
                 startContextIfNotStarted()
-                noteOn({ note: note, velocity: 100 })
+                noteOn({ note: midiNumber, velocity: 100 })
             }}
-            onMouseUp={() => {
-                noteOff({ note: note })
+            stopNote={(midiNumber: number) => {
+                noteOff({ note: midiNumber })
             }}
-        >
-            Play Note
-        </button>
+            width={1000}
+            keyboardShortcuts={keyboardShortcuts}
+        />
     )
 }
