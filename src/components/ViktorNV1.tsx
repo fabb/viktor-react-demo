@@ -5,20 +5,50 @@ const midiNoteOn = 144
 const midiNoteOff = 128
 const velocityOff = 0
 
-class ViktorNV1 extends React.Component {
+export class ViktorNV1 extends React.Component {
     render() {
         return <ViktorNV1SynthContainer>{props => <ViktorNV1SynthUI {...props} />}</ViktorNV1SynthContainer>
     }
 }
 
-class ViktorNV1SynthContainer extends React.Component {
-    constructor(props) {
+interface ViktorNV1SynthContainerRenderFuncProps {
+    startContextIfNotStarted: () => void
+    noteOn: (x: { note: number; velocity: number }) => void
+    noteOff: (x: { note: number }) => void
+    patchNames: string[]
+    selectedPatchName: string
+    onPatchChange: (x: { newPatchName: string }) => void
+}
+
+interface ViktorNV1SynthContainerProps {
+    children: (renderProps: ViktorNV1SynthContainerRenderFuncProps) => React.ReactNode
+}
+
+interface ViktorNV1SynthContainerState {
+    store: {
+        get: (name: string) => void
+        set: (name: string, data: any) => void
+        remove: (name: string) => void
+    }
+    dawEngine: any
+    patchLibrary: any
+    selectedPatchName: string
+}
+
+class ViktorNV1SynthContainer extends React.Component<ViktorNV1SynthContainerProps, ViktorNV1SynthContainerState> {
+    constructor(props: ViktorNV1SynthContainerProps) {
         super(props)
         this.state = {
             store: {
-                get: function(name) {},
-                set: function(name, data) {},
-                remove: function(name) {},
+                get: name => {
+                    // nothing
+                },
+                set: (name, data) => {
+                    // nothing
+                },
+                remove: name => {
+                    // nothing
+                },
             },
             dawEngine: {},
             patchLibrary: {},
@@ -27,7 +57,7 @@ class ViktorNV1SynthContainer extends React.Component {
     }
 
     componentDidMount() {
-        const AudioContext = global.AudioContext || global.webkitAudioContext
+        const AudioContext = (global as any).AudioContext || (global as any).webkitAudioContext
         const { dawEngine, patchLibrary } = NV1Engine.create(AudioContext, this.state.store)
 
         const patchNames = patchLibrary.getDefaultNames()
@@ -56,7 +86,7 @@ class ViktorNV1SynthContainer extends React.Component {
         }
     }
 
-    onPatchChange = ({ newPatchName }) => {
+    onPatchChange = ({ newPatchName }: { newPatchName: string }) => {
         const patchLibrary = this.state.patchLibrary
         patchLibrary.selectPatch(newPatchName)
         const patch = patchLibrary.getSelected().patch
@@ -66,13 +96,13 @@ class ViktorNV1SynthContainer extends React.Component {
         })
     }
 
-    noteOn = ({ note, velocity }) => {
+    noteOn = ({ note, velocity }: { note: number; velocity: number }) => {
         this.state.dawEngine.externalMidiMessage({
             data: [midiNoteOn, note, velocity],
         })
     }
 
-    noteOff = ({ note }) => {
+    noteOff = ({ note }: { note: number }) => {
         this.state.dawEngine.externalMidiMessage({
             data: [midiNoteOff, note, velocityOff],
         })
@@ -82,7 +112,7 @@ class ViktorNV1SynthContainer extends React.Component {
         const patchLibrary = this.state.patchLibrary
         const patchNames = patchLibrary && patchLibrary.getDefaultNames && patchLibrary.getDefaultNames()
         const selectedPatchName = patchLibrary && patchLibrary.getSelected && patchLibrary.getSelected().name
-        const renderFuncProps = {
+        const renderFuncProps: ViktorNV1SynthContainerRenderFuncProps = {
             startContextIfNotStarted: this.startContextIfNotStarted,
             noteOn: this.noteOn,
             noteOff: this.noteOff,
@@ -94,14 +124,14 @@ class ViktorNV1SynthContainer extends React.Component {
     }
 }
 
-const ViktorNV1SynthUI = props => (
+const ViktorNV1SynthUI = (props: ViktorNV1SynthContainerRenderFuncProps) => (
     <div>
         <PatchSelect {...props} />
         <Keyboard {...props} />
     </div>
 )
 
-const PatchSelect = ({ patchNames, selectedPatchName, onPatchChange }) => {
+const PatchSelect = ({ patchNames, selectedPatchName, onPatchChange }: Pick<ViktorNV1SynthContainerRenderFuncProps, 'patchNames' | 'selectedPatchName' | 'onPatchChange'>) => {
     return (
         <div>
             <label htmlFor="patch">Patch: </label>
@@ -127,7 +157,7 @@ const PatchSelect = ({ patchNames, selectedPatchName, onPatchChange }) => {
     )
 }
 
-const Keyboard = ({ startContextIfNotStarted, noteOn, noteOff }) => {
+const Keyboard = ({ startContextIfNotStarted, noteOn, noteOff }: Pick<ViktorNV1SynthContainerRenderFuncProps, 'startContextIfNotStarted' | 'noteOn' | 'noteOff'>) => {
     const note = 64
     return (
         <button
@@ -143,5 +173,3 @@ const Keyboard = ({ startContextIfNotStarted, noteOn, noteOff }) => {
         </button>
     )
 }
-
-export default ViktorNV1
