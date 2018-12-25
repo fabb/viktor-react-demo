@@ -1,8 +1,8 @@
-import * as React from 'react'
+import React, { Component } from 'react'
 import { ViktorNV1 } from './components/ViktorNV1'
 import './App.css'
 
-export class App extends React.Component {
+class App extends Component {
     render() {
         return (
             <div className="App">
@@ -14,3 +14,5 @@ export class App extends React.Component {
         )
     }
 }
+
+export default App
