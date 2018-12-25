@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as NV1Engine from 'viktor-nv1-engine'
-import { Piano, KeyboardShortcuts, MidiNumbers } from 'react-piano'
-import 'react-piano/dist/styles.css'
+import { Piano, KeyboardShortcuts, MidiNumbers } from '@fabb/react-piano'
+import '@fabb/react-piano/dist/styles.css'
 
 const midiNoteOn = 144
 const midiNoteOff = 128
@@ -181,7 +181,6 @@ const Keyboard = ({ startContextIfNotStarted, noteOn, noteOff }: Pick<ViktorNV1S
             stopNote={(midiNumber: number) => {
                 noteOff({ note: midiNumber })
             }}
-            width={1000}
             keyboardShortcuts={keyboardShortcuts}
         />
     )
