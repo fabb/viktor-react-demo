@@ -1,6 +1,8 @@
 import * as React from 'react'
 import * as NV1Engine from 'viktor-nv1-engine'
 import { Piano, KeyboardShortcuts, MidiNumbers } from '@fabb/react-piano'
+import { Knob } from 'react-rotary-knob'
+import update from 'immutability-helper'
 import '@fabb/react-piano/dist/styles.css'
 
 const midiNoteOn = 144
@@ -20,6 +22,18 @@ interface ViktorNV1SynthContainerRenderFuncProps {
     patchNames: string[]
     selectedPatchName: string
     onPatchChange: (x: { newPatchName: string }) => void
+    onParameterChange: (parameterName: ParameterName, newValue: number) => void
+    values: { [K in ParameterName]?: number } // TODO non-optional
+    ranges: any // TODO use RANGE_LIBRARY - warning, viktor always translates patches to the newest ENGINE_VERSION
+}
+
+type ParameterName = 'instruments.synth.oscillator.osc2.fineDetune' // [-800, 800]
+
+const parameterUIName = (parameterName: ParameterName) => {
+    switch (parameterName) {
+        case 'instruments.synth.oscillator.osc2.fineDetune':
+            return 'OSC2 Detune'
+    }
 }
 
 interface ViktorNV1SynthContainerProps {
@@ -34,7 +48,6 @@ interface ViktorNV1SynthContainerState {
     }
     dawEngine: any
     patchLibrary: any
-    selectedPatchName: string
 }
 
 class ViktorNV1SynthContainer extends React.Component<ViktorNV1SynthContainerProps, ViktorNV1SynthContainerState> {
@@ -54,7 +67,6 @@ class ViktorNV1SynthContainer extends React.Component<ViktorNV1SynthContainerPro
             },
             dawEngine: {},
             patchLibrary: {},
-            selectedPatchName: '',
         }
     }
 
@@ -70,7 +82,6 @@ class ViktorNV1SynthContainer extends React.Component<ViktorNV1SynthContainerPro
         this.setState({
             dawEngine: dawEngine,
             patchLibrary: patchLibrary,
-            selectedPatchName: patchLibrary.getSelected().name,
         })
     }
 
@@ -89,12 +100,16 @@ class ViktorNV1SynthContainer extends React.Component<ViktorNV1SynthContainerPro
     }
 
     onPatchChange = ({ newPatchName }: { newPatchName: string }) => {
-        const patchLibrary = this.state.patchLibrary
-        patchLibrary.selectPatch(newPatchName)
-        const patch = patchLibrary.getSelected().patch
-        this.state.dawEngine.loadPatch(patch)
-        this.setState({
-            selectedPatchName: patchLibrary.getSelected().name,
+        this.setState(oldState => {
+            const dawEngine = oldState.dawEngine
+            const patchLibrary = oldState.patchLibrary
+            patchLibrary.selectPatch(newPatchName)
+            const patch = patchLibrary.getSelected().patch
+            dawEngine.loadPatch(patch)
+            return {
+                dawEngine: dawEngine,
+                patchLibrary: patchLibrary,
+            }
         })
     }
 
@@ -110,10 +125,48 @@ class ViktorNV1SynthContainer extends React.Component<ViktorNV1SynthContainerPro
         })
     }
 
+    onParameterChange = (parameterName: ParameterName, newValue: number) => {
+        switch (parameterName) {
+            case 'instruments.synth.oscillator.osc2.fineDetune':
+                if (newValue === this.state.dawEngine.instruments[0].oscillatorSettings.osc2.fineDetune.value) {
+                    return
+                }
+
+                this.setState(oldState => {
+                    const instrument = oldState.dawEngine.instruments[0]
+                    const newOscSettings = update(instrument.oscillatorSettings, { osc2: { fineDetune: { value: { $set: newValue } } } })
+                    // oscillatorSettings is a defined property with a setter, therefore we need to modify it like this, and cannot use update
+                    instrument.oscillatorSettings = newOscSettings
+                    return { dawEngine: oldState.dawEngine }
+                })
+        }
+    }
+
+    currentParameterValuesAndRanges = (): { values: { [K in ParameterName]?: number }; ranges: any } => {
+        if (!this.state.dawEngine || !this.state.dawEngine.instruments || !this.state.dawEngine.instruments[0]) {
+            return {
+                values: {},
+                ranges: {},
+            }
+        }
+
+        const instrument = this.state.dawEngine.instruments[0]
+
+        return {
+            values: {
+                'instruments.synth.oscillator.osc2.fineDetune': instrument.oscillatorSettings.osc2.fineDetune.value,
+            },
+            ranges: {
+                'instruments.synth.oscillator.osc2.fineDetune': instrument.oscillatorSettings.osc2.fineDetune.range,
+            },
+        }
+    }
+
     render() {
         const patchLibrary = this.state.patchLibrary
         const patchNames = patchLibrary && patchLibrary.getDefaultNames && patchLibrary.getDefaultNames()
         const selectedPatchName = patchLibrary && patchLibrary.getSelected && patchLibrary.getSelected().name
+        const valuesAndRanges = this.currentParameterValuesAndRanges()
         const renderFuncProps: ViktorNV1SynthContainerRenderFuncProps = {
             startContextIfNotStarted: this.startContextIfNotStarted,
             noteOn: this.noteOn,
@@ -121,6 +174,9 @@ class ViktorNV1SynthContainer extends React.Component<ViktorNV1SynthContainerPro
             patchNames: patchNames,
             selectedPatchName: selectedPatchName,
             onPatchChange: this.onPatchChange,
+            onParameterChange: this.onParameterChange,
+            values: valuesAndRanges['values'],
+            ranges: valuesAndRanges['ranges'],
         }
         return this.props.children(renderFuncProps)
     }
@@ -129,6 +185,7 @@ class ViktorNV1SynthContainer extends React.Component<ViktorNV1SynthContainerPro
 const ViktorNV1SynthUI = (props: ViktorNV1SynthContainerRenderFuncProps) => (
     <div>
         <PatchSelect {...props} />
+        <ParameterControlContainer {...props} />
         <Keyboard {...props} />
     </div>
 )
@@ -158,6 +215,35 @@ const PatchSelect = ({ patchNames, selectedPatchName, onPatchChange }: Pick<Vikt
                       })
                     : 'loading...'}
             </select>
+        </div>
+    )
+}
+
+const ParameterControlContainer = ({ onParameterChange, values }: Pick<ViktorNV1SynthContainerRenderFuncProps, 'onParameterChange' | 'values'>) => {
+    return (
+        <div>
+            <ParameterControl
+                onParameterChange={onParameterChange}
+                parameter={'instruments.synth.oscillator.osc2.fineDetune'}
+                value={values['instruments.synth.oscillator.osc2.fineDetune'] || 0}
+            />
+        </div>
+    )
+}
+
+interface ParameterControlProps {
+    onParameterChange: (parameterName: ParameterName, newValue: number) => void
+    parameter: ParameterName
+    value: number
+}
+
+const ParameterControl = ({ onParameterChange, parameter, value }: ParameterControlProps) => {
+    return (
+        <div style={{ display: 'inline-block' }}>
+            {/* TODO range */}
+            <Knob onChange={(newValue: number) => onParameterChange(parameter, newValue)} value={value} min={-800} max={800} />
+            <p>{parameterUIName(parameter)}</p>
+            <p style={{ maxWidth: '20px' }}>{value}</p>
         </div>
     )
 }
