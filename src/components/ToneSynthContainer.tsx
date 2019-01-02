@@ -6,6 +6,9 @@ export interface ToneSynthContainerRenderFuncProps {
     noteOff: (x: { note: number }) => void
     startSong: () => void
     stopSong: () => void
+    synthIds: SynthId[]
+    selectedSynthId: SynthId
+    onSelectedSynthChange: (x: { newSynthId: SynthId }) => void
 }
 
 /** Velocity is in range 0-1 */
@@ -22,7 +25,8 @@ interface ToneSynthContainerState {
     playState: PlayState
 }
 
-type SynthId = 'bass'
+export type SynthId = 'bass' | 'kick' | 'hh'
+
 interface Synth {
     synthObject: any
     triggerAttack: (note: Note, time?: Time, velocity?: Velocity) => void
@@ -30,7 +34,7 @@ interface Synth {
     triggerAttackRelease: (note: Note, duration: Time, time?: Time, velocity?: Velocity) => void
 }
 
-type Note = string | number
+type Note = string | number | undefined
 type Time = string // Tone.Time
 
 type PlayState = 'stopped' | 'running'
@@ -50,6 +54,8 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
         const AudioContext = (global as any).AudioContext || (global as any).webkitAudioContext
         const audioContext = new AudioContext()
         const bassSynth = new Tone.Synth().toMaster()
+        const kickSynth = new Tone.MembraneSynth().toMaster()
+        const hhSynth = new Tone.MetalSynth().toMaster()
         const synths: { [K in SynthId]?: Synth } = {
             bass: {
                 synthObject: bassSynth,
@@ -57,10 +63,34 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
                     bassSynth.triggerAttack(note, time, velocity)
                 },
                 triggerRelease: (note, time) => {
-                    bassSynth.triggerRelease()
+                    bassSynth.triggerRelease(time)
                 },
                 triggerAttackRelease: (note, duration, time, velocity) => {
                     bassSynth.triggerAttackRelease(note, duration, time, velocity)
+                },
+            },
+            kick: {
+                synthObject: kickSynth,
+                triggerAttack: (note, time, velocity) => {
+                    kickSynth.triggerAttack(note, time, velocity)
+                },
+                triggerRelease: (note, time) => {
+                    kickSynth.triggerRelease(time)
+                },
+                triggerAttackRelease: (note, duration, time, velocity) => {
+                    kickSynth.triggerAttackRelease(note, duration, time, velocity)
+                },
+            },
+            hh: {
+                synthObject: hhSynth,
+                triggerAttack: (note, time, velocity) => {
+                    hhSynth.triggerAttack(time, velocity)
+                },
+                triggerRelease: (note, time) => {
+                    hhSynth.triggerRelease(time)
+                },
+                triggerAttackRelease: (note, duration, time, velocity) => {
+                    hhSynth.triggerAttackRelease(duration, time, velocity)
                 },
             },
         }
@@ -116,6 +146,9 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
 
         this.selectSong()
 
+        // FIXME this doesn't work until a note is played via keyboard
+        this.startContextIfNotStarted()
+
         Tone.Transport.bpm.value = 140
         Tone.Transport.start('+0.1')
 
@@ -126,10 +159,12 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
         Tone.Transport.cancel()
 
         const bassSynth = this.state.synths['bass']!
+        const kickSynth = this.state.synths['kick']!
+        const hhSynth = this.state.synths['hh']!
 
         new Tone.Sequence(
-            (time: any, pitch: any) => {
-                bassSynth.triggerAttackRelease(pitch, '8n', time)
+            (time: Time, note: Note) => {
+                bassSynth.triggerAttackRelease(note, '8n', time)
             },
             ['F1', 'F2', ['F1', 'F2'], [null, 'F2']],
             '4n'
@@ -139,6 +174,34 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
                 loop: true,
                 loopEnd: '1m',
             })
+
+        new Tone.Sequence(
+            (time: Time, note: string) => {
+                const v = note === 'X' ? 0.05 : 0.02
+                kickSynth.triggerAttackRelease('C4', '8n', time, v)
+            },
+            ['X'],
+            '4n'
+        )
+            .start('0m')
+            .set({
+                loop: true,
+                loopEnd: '4n',
+            })
+
+        new Tone.Sequence(
+            (time: Time, note: string) => {
+                const v = note === 'X' ? 0.015 : 0.008
+                hhSynth.triggerAttackRelease(undefined, '8n', time, v)
+            },
+            ['X', 'x'],
+            '8n'
+        )
+            .start('0m')
+            .set({
+                loop: true,
+                loopEnd: '4n',
+            })
     }
 
     stopSong = () => {
@@ -147,12 +210,19 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
         this.setState({ playState: 'stopped' })
     }
 
+    onSelectedSynthChange = ({ newSynthId }: { newSynthId: SynthId }) => {
+        this.setState({ selectedSynthId: newSynthId })
+    }
+
     render() {
         const renderFuncProps: ToneSynthContainerRenderFuncProps = {
             noteOn: this.noteOn,
             noteOff: this.noteOff,
             startSong: this.startSong,
             stopSong: this.stopSong,
+            synthIds: Object.keys(this.state.synths) as SynthId[],
+            selectedSynthId: this.state.selectedSynthId,
+            onSelectedSynthChange: this.onSelectedSynthChange,
         }
         return this.props.children(renderFuncProps)
     }
