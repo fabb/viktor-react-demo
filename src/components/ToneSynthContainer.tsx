@@ -51,8 +51,7 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
     }
 
     componentDidMount() {
-        const AudioContext = (global as any).AudioContext || (global as any).webkitAudioContext
-        const audioContext = new AudioContext()
+        const audioContext = Tone.context
         const bassSynth = new Tone.Synth().toMaster()
         const kickSynth = new Tone.MembraneSynth().toMaster()
         const hhSynth = new Tone.MetalSynth().toMaster()
@@ -146,7 +145,6 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
 
         this.selectSong()
 
-        // FIXME this doesn't work until a note is played via keyboard
         this.startContextIfNotStarted()
 
         Tone.Transport.bpm.value = 140
