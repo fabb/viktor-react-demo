@@ -1,5 +1,9 @@
 import * as React from 'react'
 import Tone from 'tone'
+import * as NV1Engine from 'viktor-nv1-engine'
+
+const midiNoteOn = 144
+const midiNoteOff = 128
 
 export interface ToneSynthContainerRenderFuncProps {
     noteOn: (x: { note: number; velocity: Velocity }) => void
@@ -23,9 +27,16 @@ interface ToneSynthContainerState {
     synths: { [K in SynthId]?: Synth }
     selectedSynthId: SynthId
     playState: PlayState
+    viktorDawEngine: any
+    viktorPatchLibrary: any
+    viktorStore: {
+        get: (name: string) => void
+        set: (name: string, data: any) => void
+        remove: (name: string) => void
+    }
 }
 
-export type SynthId = 'bass' | 'kick' | 'hh'
+export type SynthId = 'bass' | 'kick' | 'hh' | 'viktor'
 
 interface Synth {
     synthObject: any
@@ -47,14 +58,41 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
             synths: {},
             selectedSynthId: 'bass',
             playState: 'stopped',
+            viktorDawEngine: undefined,
+            viktorPatchLibrary: undefined,
+            viktorStore: {
+                get: name => {
+                    // nothing
+                },
+                set: (name, data) => {
+                    // nothing
+                },
+                remove: name => {
+                    // nothing
+                },
+            },
         }
     }
 
     componentDidMount() {
         const audioContext = Tone.context
+
         const bassSynth = new Tone.Synth().toMaster()
         const kickSynth = new Tone.MembraneSynth().toMaster()
         const hhSynth = new Tone.MetalSynth().toMaster()
+
+        function fakeAudioContextConstructor() {
+            return audioContext
+        }
+        const { dawEngine, patchLibrary } = NV1Engine.create(fakeAudioContextConstructor, this.state.viktorStore)
+        const viktorDawEngine = dawEngine
+        const viktorPatchLibrary = patchLibrary
+
+        const patchNames = viktorPatchLibrary.getDefaultNames()
+        viktorPatchLibrary.selectPatch(patchNames[2])
+        const patch = viktorPatchLibrary.getSelected().patch
+        viktorDawEngine.loadPatch(patch)
+
         const synths: { [K in SynthId]?: Synth } = {
             bass: {
                 synthObject: bassSynth,
@@ -92,13 +130,39 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
                     hhSynth.triggerAttackRelease(duration, time, velocity)
                 },
             },
+            viktor: {
+                synthObject: viktorDawEngine,
+                triggerAttack: (note, time, velocity) => {
+                    viktorDawEngine.externalMidiMessage({
+                        data: [midiNoteOn, note, (velocity || 1) * 127],
+                    })
+                },
+                triggerRelease: (note, time) => {
+                    viktorDawEngine.externalMidiMessage({
+                        data: [midiNoteOff, note, 0],
+                    })
+                },
+                triggerAttackRelease: (note, duration, time, velocity) => {
+                    // TODO this does not yet work, since the time of attack and release need to be scheduled using AudioParams
+                    // viktorDawEngine.externalMidiMessage({
+                    //     data: [midiNoteOn, note, (velocity || 1) * 127],
+                    // })
+                    // setTimeout(() => {
+                    //     viktorDawEngine.externalMidiMessage({
+                    //         data: [midiNoteOff, note, 0],
+                    //     })
+                    // }, 1000)
+                },
+            },
         }
 
         this.setState(
             {
                 audioContext: audioContext,
                 synths: synths,
-                selectedSynthId: 'bass',
+                selectedSynthId: 'viktor',
+                viktorDawEngine: viktorDawEngine,
+                viktorPatchLibrary: viktorPatchLibrary,
             },
             () => {
                 if (this.state.playState === 'running') {
@@ -159,6 +223,7 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
         const bassSynth = this.state.synths['bass']!
         const kickSynth = this.state.synths['kick']!
         const hhSynth = this.state.synths['hh']!
+        // const viktorSynth = this.state.synths['viktor']!
 
         new Tone.Sequence(
             (time: Time, note: Note) => {
@@ -199,6 +264,20 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
             .set({
                 loop: true,
                 loopEnd: '4n',
+            })
+
+        new Tone.Sequence(
+            (time: Time, note: Note) => {
+                // TODO this does not yet work, since the time of attack and release need to be scheduled using AudioParams
+                // viktorSynth.triggerAttackRelease(note, '8n', time)
+            },
+            ['F1', null, ['F2'], null],
+            '4n'
+        )
+            .start('0m')
+            .set({
+                loop: true,
+                loopEnd: '1m',
             })
     }
 
