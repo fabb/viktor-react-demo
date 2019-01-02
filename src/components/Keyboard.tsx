@@ -20,7 +20,7 @@ export const Keyboard = ({ noteOn, noteOff }: KeyboardProps) => {
         <Piano
             noteRange={{ first: firstNote, last: lastNote }}
             playNote={(midiNumber: number) => {
-                noteOn({ note: midiNumber, velocity: 100 })
+                noteOn({ note: midiNumber, velocity: 1 })
             }}
             stopNote={(midiNumber: number) => {
                 noteOff({ note: midiNumber })

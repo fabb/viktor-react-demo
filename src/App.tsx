@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { ViktorNV1 } from './components/ViktorNV1'
+import { ToneSynth } from './components/ToneSynth'
 import './App.css'
 
 class App extends Component {
@@ -7,9 +7,9 @@ class App extends Component {
         return (
             <div className="App">
                 <header className="App-header">
-                    <h1 className="App-title">Viktor NV-1 React Demo</h1>
+                    <h1 className="App-title">Tone.js React Demo</h1>
                 </header>
-                <ViktorNV1 />
+                <ToneSynth />
             </div>
         )
     }

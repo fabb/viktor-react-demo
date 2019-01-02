@@ -16,7 +16,9 @@ export class ViktorNV1 extends React.Component {
 }
 
 interface ViktorNV1SynthContainerRenderFuncProps {
+    /** velocity is in range 0-1 */
     noteOn: (x: { note: number; velocity: number }) => void
+    /** velocity is in range 0-1 */
     noteOff: (x: { note: number }) => void
     patchNames: string[]
     selectedPatchName: string
@@ -115,7 +117,7 @@ class ViktorNV1SynthContainer extends React.Component<ViktorNV1SynthContainerPro
     noteOn = ({ note, velocity }: { note: number; velocity: number }) => {
         this.startContextIfNotStarted()
         this.state.dawEngine.externalMidiMessage({
-            data: [midiNoteOn, note, velocity],
+            data: [midiNoteOn, note, velocity * 127],
         })
     }
 
