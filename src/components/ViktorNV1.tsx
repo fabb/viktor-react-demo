@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as NV1Engine from 'viktor-nv1-engine'
-import { Piano, KeyboardShortcuts, MidiNumbers } from '@fabb/react-piano'
 import { Knob } from 'react-rotary-knob'
 import update from 'immutability-helper'
 import '@fabb/react-piano/dist/styles.css'
+import { Keyboard } from './Keyboard'
 
 const midiNoteOn = 144
 const midiNoteOff = 128
@@ -16,7 +16,6 @@ export class ViktorNV1 extends React.Component {
 }
 
 interface ViktorNV1SynthContainerRenderFuncProps {
-    startContextIfNotStarted: () => void
     noteOn: (x: { note: number; velocity: number }) => void
     noteOff: (x: { note: number }) => void
     patchNames: string[]
@@ -114,6 +113,7 @@ class ViktorNV1SynthContainer extends React.Component<ViktorNV1SynthContainerPro
     }
 
     noteOn = ({ note, velocity }: { note: number; velocity: number }) => {
+        this.startContextIfNotStarted()
         this.state.dawEngine.externalMidiMessage({
             data: [midiNoteOn, note, velocity],
         })
@@ -168,7 +168,6 @@ class ViktorNV1SynthContainer extends React.Component<ViktorNV1SynthContainerPro
         const selectedPatchName = patchLibrary && patchLibrary.getSelected && patchLibrary.getSelected().name
         const valuesAndRanges = this.currentParameterValuesAndRanges()
         const renderFuncProps: ViktorNV1SynthContainerRenderFuncProps = {
-            startContextIfNotStarted: this.startContextIfNotStarted,
             noteOn: this.noteOn,
             noteOff: this.noteOff,
             patchNames: patchNames,
@@ -245,29 +244,5 @@ const ParameterControl = ({ onParameterChange, parameter, value }: ParameterCont
             <p>{parameterUIName(parameter)}</p>
             <p style={{ maxWidth: '20px' }}>{value}</p>
         </div>
-    )
-}
-
-const Keyboard = ({ startContextIfNotStarted, noteOn, noteOff }: Pick<ViktorNV1SynthContainerRenderFuncProps, 'startContextIfNotStarted' | 'noteOn' | 'noteOff'>) => {
-    const firstNote = MidiNumbers.fromNote('c3')
-    const lastNote = MidiNumbers.fromNote('f5')
-    const keyboardShortcuts = KeyboardShortcuts.create({
-        firstNote: firstNote,
-        lastNote: lastNote,
-        keyboardConfig: KeyboardShortcuts.HOME_ROW,
-    })
-
-    return (
-        <Piano
-            noteRange={{ first: firstNote, last: lastNote }}
-            playNote={(midiNumber: number) => {
-                startContextIfNotStarted()
-                noteOn({ note: midiNumber, velocity: 100 })
-            }}
-            stopNote={(midiNumber: number) => {
-                noteOff({ note: midiNumber })
-            }}
-            keyboardShortcuts={keyboardShortcuts}
-        />
     )
 }
