@@ -1,8 +1,8 @@
 import * as React from 'react'
-import { ToneSynthContainer } from './ToneSynthContainer'
+import { ToneSynthContainer, SynthId } from './ToneSynthContainer'
 import { ToneSynthUI } from './ToneSynthUI'
 import { Keyboard } from './Keyboard'
-import { SynthSelect } from './SynthSelect'
+import { Select } from './Select'
 
 export class ToneSynth extends React.Component {
     render() {
@@ -10,7 +10,13 @@ export class ToneSynth extends React.Component {
             <ToneSynthContainer>
                 {props => (
                     <div>
-                        <SynthSelect {...props} />
+                        <Select
+                            id="synth_select"
+                            label="Synth"
+                            selectValues={props.synthIds}
+                            selectedValue={props.selectedSynthId}
+                            onSelectedValueChange={({ newSelectedValue }) => props.onSelectedSynthChange({ newSynthId: newSelectedValue as SynthId })}
+                        />
                         <ToneSynthUI {...props} />
                         <Keyboard {...props} />
                     </div>

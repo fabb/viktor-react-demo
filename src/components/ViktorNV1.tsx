@@ -4,6 +4,7 @@ import { Knob } from 'react-rotary-knob'
 import update from 'immutability-helper'
 import '@fabb/react-piano/dist/styles.css'
 import { Keyboard } from './Keyboard'
+import { Select } from './Select'
 
 const midiNoteOn = 144
 const midiNoteOff = 128
@@ -185,40 +186,17 @@ class ViktorNV1SynthContainer extends React.Component<ViktorNV1SynthContainerPro
 
 const ViktorNV1SynthUI = (props: ViktorNV1SynthContainerRenderFuncProps) => (
     <div>
-        <PatchSelect {...props} />
+        <Select
+            id="patch"
+            label="Patch"
+            selectValues={props.patchNames}
+            selectedValue={props.selectedPatchName}
+            onSelectedValueChange={({ newSelectedValue }) => props.onPatchChange({ newPatchName: newSelectedValue })}
+        />
         <ParameterControlContainer {...props} />
         <Keyboard {...props} />
     </div>
 )
-
-const PatchSelect = ({ patchNames, selectedPatchName, onPatchChange }: Pick<ViktorNV1SynthContainerRenderFuncProps, 'patchNames' | 'selectedPatchName' | 'onPatchChange'>) => {
-    const selectRef = React.createRef<HTMLSelectElement>()
-    return (
-        <div>
-            <label htmlFor="patch">Patch: </label>
-            <select
-                ref={selectRef}
-                id="patch"
-                value={selectedPatchName}
-                onChange={event => {
-                    const newPatchName = event.target.value
-                    onPatchChange({ newPatchName })
-                    selectRef.current!.blur()
-                }}
-            >
-                {patchNames
-                    ? patchNames.map(patchName => {
-                          return (
-                              <option key={patchName} value={patchName}>
-                                  {patchName}
-                              </option>
-                          )
-                      })
-                    : 'loading...'}
-            </select>
-        </div>
-    )
-}
 
 const ParameterControlContainer = ({ onParameterChange, values }: Pick<ViktorNV1SynthContainerRenderFuncProps, 'onParameterChange' | 'values'>) => {
     return (
