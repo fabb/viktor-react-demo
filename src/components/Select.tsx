@@ -1,4 +1,5 @@
 import * as React from 'react'
+import '../App.css'
 
 interface SelectProps {
     id: string
@@ -12,7 +13,7 @@ interface SelectProps {
 export const Select = ({ placeholder = 'loading...', ...props }: SelectProps) => {
     const selectRef = React.createRef<HTMLSelectElement>()
     return (
-        <div>
+        <div className="default-margins">
             <label htmlFor={props.id}>{`${props.label}: `}</label>
             <select
                 ref={selectRef}

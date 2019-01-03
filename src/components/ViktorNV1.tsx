@@ -5,6 +5,7 @@ import update from 'immutability-helper'
 import '@fabb/react-piano/dist/styles.css'
 import { Keyboard } from './Keyboard'
 import { Select } from './Select'
+import '../App.css'
 
 const midiNoteOn = 144
 const midiNoteOff = 128
@@ -185,7 +186,7 @@ class ViktorNV1SynthContainer extends React.Component<ViktorNV1SynthContainerPro
 }
 
 const ViktorNV1SynthUI = (props: ViktorNV1SynthContainerRenderFuncProps) => (
-    <div>
+    <div className="default-margins">
         <Select
             id="patch"
             label="Patch"
@@ -200,7 +201,7 @@ const ViktorNV1SynthUI = (props: ViktorNV1SynthContainerRenderFuncProps) => (
 
 const ParameterControlContainer = ({ onParameterChange, values }: Pick<ViktorNV1SynthContainerRenderFuncProps, 'onParameterChange' | 'values'>) => {
     return (
-        <div>
+        <div className="default-margins">
             <ParameterControl
                 onParameterChange={onParameterChange}
                 parameter={'instruments.synth.oscillator.osc2.fineDetune'}

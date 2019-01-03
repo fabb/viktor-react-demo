@@ -3,13 +3,14 @@ import { ToneSynthContainer, SynthId } from './ToneSynthContainer'
 import { ToneSynthUI } from './ToneSynthUI'
 import { Keyboard } from './Keyboard'
 import { Select } from './Select'
+import '../App.css'
 
 export class ToneSynth extends React.Component {
     render() {
         return (
             <ToneSynthContainer>
                 {props => (
-                    <div>
+                    <div className="default-margins">
                         <Select
                             id="synth_select"
                             label="Synth"

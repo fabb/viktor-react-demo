@@ -1,3 +1,7 @@
 .App {
     text-align: center;
 }
+
+.default-margins {
+    margin: 8px;
+}

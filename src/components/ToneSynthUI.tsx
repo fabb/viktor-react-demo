@@ -1,10 +1,11 @@
 import * as React from 'react'
 import { ToneSynthContainerRenderFuncProps } from './ToneSynthContainer'
 import { Select } from './Select'
+import '../App.css'
 
 export const ToneSynthUI = (props: ToneSynthContainerRenderFuncProps) => (
-    <div>
-        <div>
+    <div className="default-margins">
+        <div className="default-margins">
             <button onClick={props.startSong}>Start Song</button>
             <button onClick={props.stopSong}>Stop Song</button>
         </div>
@@ -20,7 +21,7 @@ const SynthSpecificUI = (props: ToneSynthContainerRenderFuncProps) => {
             return null // no UI yet
         case 'viktor':
             return (
-                <div>
+                <div className="default-margins">
                     <Select
                         id="patch"
                         label="Patch"
