@@ -140,25 +140,33 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
             viktor: {
                 synthObject: viktorDawEngine,
                 triggerAttack: (note, time, velocity) => {
+                    // TODO use time value, since the time of attack needs to be scheduled using AudioParams
+
                     viktorDawEngine.externalMidiMessage({
                         data: [midiNoteOn, note, (velocity || 1) * 127],
                     })
                 },
                 triggerRelease: (note, time) => {
+                    // TODO use time value, since the time of release needs to be scheduled using AudioParams
+
                     viktorDawEngine.externalMidiMessage({
                         data: [midiNoteOff, note, 0],
                     })
                 },
                 triggerAttackRelease: (note, duration, time, velocity) => {
-                    // TODO this does not yet work, since the time of attack and release need to be scheduled using AudioParams
-                    // viktorDawEngine.externalMidiMessage({
-                    //     data: [midiNoteOn, note, (velocity || 1) * 127],
-                    // })
-                    // setTimeout(() => {
-                    //     viktorDawEngine.externalMidiMessage({
-                    //         data: [midiNoteOff, note, 0],
-                    //     })
-                    // }, 1000)
+                    // TODO use time and duration values, since the time of attack and release need to be scheduled using AudioParams
+
+                    const midiNote = Tone.Frequency(note).toMidi()
+                    const durationInSeconds = Tone.Time(duration).toSeconds()
+
+                    viktorDawEngine.externalMidiMessage({
+                        data: [midiNoteOn, midiNote, (velocity || 1) * 127],
+                    })
+                    setTimeout(() => {
+                        viktorDawEngine.externalMidiMessage({
+                            data: [midiNoteOff, midiNote, 0],
+                        })
+                    }, durationInSeconds * 1000)
                 },
             },
         }
@@ -230,7 +238,7 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
         const bassSynth = this.state.synths['bass']!
         const kickSynth = this.state.synths['kick']!
         const hhSynth = this.state.synths['hh']!
-        // const viktorSynth = this.state.synths['viktor']!
+        const viktorSynth = this.state.synths['viktor']!
 
         new Tone.Sequence(
             (time: Time, note: Note) => {
@@ -275,10 +283,9 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
 
         new Tone.Sequence(
             (time: Time, note: Note) => {
-                // TODO this does not yet work, since the time of attack and release need to be scheduled using AudioParams
-                // viktorSynth.triggerAttackRelease(note, '8n', time)
+                viktorSynth.triggerAttackRelease(note, '8n', time, 0.3)
             },
-            ['F1', null, ['F2'], null],
+            ['F2', null, ['F3'], null],
             '4n'
         )
             .start('0m')
