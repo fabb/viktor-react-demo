@@ -13,10 +13,17 @@ export interface ToneSynthContainerRenderFuncProps {
     synthIds: SynthId[]
     selectedSynthId: SynthId
     onSelectedSynthChange: (x: { newSynthId: SynthId }) => void
+    viktorParameters: ViktorParameters
 }
 
 /** Velocity is in range 0-1 */
 type Velocity = number
+
+interface ViktorParameters {
+    patchNames: string[]
+    selectedPatchName: string
+    onPatchChange: (x: { newPatchName: string }) => void
+}
 
 interface ToneSynthContainerProps {
     children: (renderProps: ToneSynthContainerRenderFuncProps) => React.ReactNode
@@ -291,7 +298,25 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
         this.setState({ selectedSynthId: newSynthId })
     }
 
+    onViktorPatchChange = ({ newPatchName }: { newPatchName: string }) => {
+        this.setState(oldState => {
+            const dawEngine = oldState.viktorDawEngine
+            const patchLibrary = oldState.viktorPatchLibrary
+            patchLibrary.selectPatch(newPatchName)
+            const patch = patchLibrary.getSelected().patch
+            dawEngine.loadPatch(patch)
+            return {
+                viktorDawEngine: dawEngine,
+                viktorPatchLibrary: patchLibrary,
+            }
+        })
+    }
+
     render() {
+        const viktorPatchLibrary = this.state.viktorPatchLibrary
+        const viktorPatchNames = viktorPatchLibrary && viktorPatchLibrary.getDefaultNames && viktorPatchLibrary.getDefaultNames()
+        const viktorSelectedPatchName = viktorPatchLibrary && viktorPatchLibrary.getSelected && viktorPatchLibrary.getSelected().name
+
         const renderFuncProps: ToneSynthContainerRenderFuncProps = {
             noteOn: this.noteOn,
             noteOff: this.noteOff,
@@ -300,6 +325,11 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
             synthIds: Object.keys(this.state.synths) as SynthId[],
             selectedSynthId: this.state.selectedSynthId,
             onSelectedSynthChange: this.onSelectedSynthChange,
+            viktorParameters: {
+                patchNames: viktorPatchNames,
+                selectedPatchName: viktorSelectedPatchName,
+                onPatchChange: this.onViktorPatchChange,
+            },
         }
         return this.props.children(renderFuncProps)
     }

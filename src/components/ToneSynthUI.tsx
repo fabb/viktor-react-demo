@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { ToneSynthContainerRenderFuncProps } from './ToneSynthContainer'
+import { Select } from './Select'
 
 export const ToneSynthUI = (props: ToneSynthContainerRenderFuncProps) => (
     <div>
@@ -18,6 +19,16 @@ const SynthSpecificUI = (props: ToneSynthContainerRenderFuncProps) => {
         case 'hh':
             return null // no UI yet
         case 'viktor':
-            return <p>TODO Viktor GUI</p>
+            return (
+                <div>
+                    <Select
+                        id="patch"
+                        label="Patch"
+                        selectValues={props.viktorParameters.patchNames}
+                        selectedValue={props.viktorParameters.selectedPatchName}
+                        onSelectedValueChange={({ newSelectedValue }) => props.viktorParameters.onPatchChange({ newPatchName: newSelectedValue })}
+                    />
+                </div>
+            )
     }
 }
