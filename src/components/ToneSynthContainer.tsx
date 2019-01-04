@@ -1,6 +1,8 @@
 import * as React from 'react'
 import Tone from 'tone'
 import * as NV1Engine from 'viktor-nv1-engine'
+import { Velocity, MidiNote, Time, Note } from '../../types/timeAndSpace'
+import { ViktorTone } from '../synths/ViktorTone'
 
 const midiNoteOn = 144
 const midiNoteOff = 128
@@ -15,9 +17,6 @@ export interface ToneSynthContainerRenderFuncProps {
     onSelectedSynthChange: (x: { newSynthId: SynthId }) => void
     viktorParameters: ViktorParameters
 }
-
-/** Velocity is in range 0-1 */
-type Velocity = number
 
 interface ViktorParameters {
     patchNames: string[]
@@ -43,7 +42,7 @@ interface ToneSynthContainerState {
     }
 }
 
-export type SynthId = 'bass' | 'kick' | 'hh' | 'viktor'
+export type SynthId = 'bass' | 'kick' | 'hh' | 'viktor' | 'viktorTone'
 
 interface Synth {
     synthObject: any
@@ -51,9 +50,6 @@ interface Synth {
     triggerRelease: (note: Note, time?: Time) => void
     triggerAttackRelease: (note: Note, duration: Time, time?: Time, velocity?: Velocity) => void
 }
-
-type Note = string | number | undefined
-type Time = string // Tone.Time
 
 type PlayState = 'stopped' | 'running'
 
@@ -87,6 +83,7 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
         const bassSynth = new Tone.Synth().toMaster()
         const kickSynth = new Tone.MembraneSynth().toMaster()
         const hhSynth = new Tone.MetalSynth().toMaster()
+        const viktorToneSynth = new ViktorTone().toMaster()
 
         function fakeAudioContextConstructor() {
             return audioContext
@@ -169,13 +166,25 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
                     }, durationInSeconds * 1000)
                 },
             },
+            viktorTone: {
+                synthObject: viktorToneSynth,
+                triggerAttack: (note, time, velocity) => {
+                    viktorToneSynth.triggerAttack(note, time, velocity)
+                },
+                triggerRelease: (note, time) => {
+                    viktorToneSynth.triggerRelease(time)
+                },
+                triggerAttackRelease: (note, duration, time, velocity) => {
+                    viktorToneSynth.triggerAttackRelease(note, duration, time, velocity)
+                },
+            },
         }
 
         this.setState(
             {
                 audioContext: audioContext,
                 synths: synths,
-                selectedSynthId: 'viktor',
+                selectedSynthId: 'viktorTone',
                 viktorDawEngine: viktorDawEngine,
                 viktorPatchLibrary: viktorPatchLibrary,
             },
@@ -206,12 +215,12 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
         }
     }
 
-    noteOn = ({ note, velocity }: { note: number; velocity: number }) => {
+    noteOn = ({ note, velocity }: { note: MidiNote; velocity: Velocity }) => {
         this.startContextIfNotStarted()
         this.selectedSynth().triggerAttack(note, '+0.01', velocity)
     }
 
-    noteOff = ({ note }: { note: number }) => {
+    noteOff = ({ note }: { note: MidiNote }) => {
         this.selectedSynth().triggerRelease(note)
     }
 

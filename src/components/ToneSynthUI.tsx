@@ -18,6 +18,7 @@ const SynthSpecificUI = (props: ToneSynthContainerRenderFuncProps) => {
         case 'bass':
         case 'kick':
         case 'hh':
+        case 'viktorTone':
             return null // no UI yet
         case 'viktor':
             return (
