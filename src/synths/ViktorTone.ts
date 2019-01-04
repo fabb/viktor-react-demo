@@ -6,7 +6,6 @@ export class ViktorTone extends Tone.Monophonic {
         super(options)
 
         options = Tone.defaultArg(options, defaults)
-        // Tone.Monophonic.call(this, options)
 
         /**
          *  the first voice
@@ -80,8 +79,6 @@ export class ViktorTone extends Tone.Monophonic {
         this._readOnly(['voice0', 'voice1', 'frequency', 'vibratoAmount', 'vibratoRate'])
     }
 }
-
-Tone.extend(ViktorTone, Tone.Monophonic)
 
 /**
  *  @static
