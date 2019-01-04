@@ -1,8 +1,9 @@
 import * as React from 'react'
-import { ToneSynthContainer, SynthId } from './ToneSynthContainer'
+import { ToneSynthContainer } from './ToneSynthContainer'
 import { ToneSynthUI } from './ToneSynthUI'
 import { Keyboard } from './Keyboard'
 import { Select } from './Select'
+import { SynthId } from '../synths/synths'
 import '../App.css'
 
 export class ToneSynth extends React.Component {
