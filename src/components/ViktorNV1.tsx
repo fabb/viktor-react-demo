@@ -6,6 +6,7 @@ import '@fabb/react-piano/dist/styles.css'
 import { Keyboard } from './Keyboard'
 import { Select } from './Select'
 import '../App.css'
+import { MidiNote } from '../../types/timeAndSpace'
 
 const midiNoteOn = 144
 const midiNoteOff = 128
@@ -19,9 +20,9 @@ export class ViktorNV1 extends React.Component {
 
 interface ViktorNV1SynthContainerRenderFuncProps {
     /** velocity is in range 0-1 */
-    noteOn: (x: { note: number; velocity: number }) => void
+    noteOn: (x: { midiNote: MidiNote; velocity: number }) => void
     /** velocity is in range 0-1 */
-    noteOff: (x: { note: number }) => void
+    noteOff: (x: { midiNote: MidiNote }) => void
     patchNames: string[]
     selectedPatchName: string
     onPatchChange: (x: { newPatchName: string }) => void
@@ -116,16 +117,16 @@ class ViktorNV1SynthContainer extends React.Component<ViktorNV1SynthContainerPro
         })
     }
 
-    noteOn = ({ note, velocity }: { note: number; velocity: number }) => {
+    noteOn = ({ midiNote, velocity }: { midiNote: MidiNote; velocity: number }) => {
         this.startContextIfNotStarted()
         this.state.dawEngine.externalMidiMessage({
-            data: [midiNoteOn, note, velocity * 127],
+            data: [midiNoteOn, midiNote, velocity * 127],
         })
     }
 
-    noteOff = ({ note }: { note: number }) => {
+    noteOff = ({ midiNote }: { midiNote: MidiNote }) => {
         this.state.dawEngine.externalMidiMessage({
-            data: [midiNoteOff, note, velocityOff],
+            data: [midiNoteOff, midiNote, velocityOff],
         })
     }
 

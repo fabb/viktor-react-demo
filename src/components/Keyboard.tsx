@@ -1,10 +1,11 @@
 import * as React from 'react'
 import { Piano, KeyboardShortcuts, MidiNumbers } from '@fabb/react-piano'
 import '@fabb/react-piano/dist/styles.css'
+import { MidiNote } from '../../types/timeAndSpace'
 
 interface KeyboardProps {
-    noteOn: (x: { note: number; velocity: number }) => void
-    noteOff: (x: { note: number }) => void
+    noteOn: (x: { midiNote: MidiNote; velocity: number }) => void
+    noteOff: (x: { midiNote: MidiNote }) => void
 }
 
 export const Keyboard = ({ noteOn, noteOff }: KeyboardProps) => {
@@ -19,11 +20,11 @@ export const Keyboard = ({ noteOn, noteOff }: KeyboardProps) => {
     return (
         <Piano
             noteRange={{ first: firstNote, last: lastNote }}
-            playNote={(midiNumber: number) => {
-                noteOn({ note: midiNumber, velocity: 1 })
+            playNote={(midiNote: MidiNote) => {
+                noteOn({ midiNote: midiNote, velocity: 1 })
             }}
-            stopNote={(midiNumber: number) => {
-                noteOff({ note: midiNumber })
+            stopNote={(midiNote: MidiNote) => {
+                noteOff({ midiNote: midiNote })
             }}
             keyboardShortcuts={keyboardShortcuts}
         />

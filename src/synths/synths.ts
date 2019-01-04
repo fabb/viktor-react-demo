@@ -75,15 +75,19 @@ export const createSynths = (audioContext: any, viktorStore: any) => {
             triggerAttack: (note, time, velocity) => {
                 // TODO use time value, since the time of attack needs to be scheduled using AudioParams
 
+                const midiNote = Tone.Frequency(note).toMidi()
+
                 viktorDawEngine.externalMidiMessage({
-                    data: [midiNoteOn, note, (velocity || 1) * 127],
+                    data: [midiNoteOn, midiNote, (velocity || 1) * 127],
                 })
             },
             triggerRelease: (note, time) => {
                 // TODO use time value, since the time of release needs to be scheduled using AudioParams
 
+                const midiNote = Tone.Frequency(note).toMidi()
+
                 viktorDawEngine.externalMidiMessage({
-                    data: [midiNoteOff, note, 0],
+                    data: [midiNoteOff, midiNote, 0],
                 })
             },
             triggerAttackRelease: (note, duration, time, velocity) => {

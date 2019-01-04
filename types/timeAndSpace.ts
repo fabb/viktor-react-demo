@@ -1,4 +1,5 @@
-export type Note = string | MidiNote | undefined
+export type Note = string | Frequency | undefined
+export type Frequency = number
 export type MidiNote = number
 export type Time = string // Tone.Time
 

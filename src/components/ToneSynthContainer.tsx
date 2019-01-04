@@ -5,8 +5,8 @@ import { SynthId, Synth, createSynths } from '../synths/synths'
 import { loadSong1 } from '../songs/songs'
 
 export interface ToneSynthContainerRenderFuncProps {
-    noteOn: (x: { note: number; velocity: Velocity }) => void
-    noteOff: (x: { note: number }) => void
+    noteOn: (x: { midiNote: MidiNote; velocity: Velocity }) => void
+    noteOff: (x: { midiNote: MidiNote }) => void
     startSong: () => void
     stopSong: () => void
     synthIds: SynthId[]
@@ -104,12 +104,14 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
         }
     }
 
-    noteOn = ({ note, velocity }: { note: MidiNote; velocity: Velocity }) => {
+    noteOn = ({ midiNote, velocity }: { midiNote: MidiNote; velocity: Velocity }) => {
         this.startContextIfNotStarted()
+        const note = Tone.Frequency(midiNote, 'midi')
         this.selectedSynth().triggerAttack(note, '+0.01', velocity)
     }
 
-    noteOff = ({ note }: { note: MidiNote }) => {
+    noteOff = ({ midiNote }: { midiNote: MidiNote }) => {
+        const note = Tone.Frequency(midiNote, 'midi')
         this.selectedSynth().triggerRelease(note)
     }
 
