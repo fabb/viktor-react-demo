@@ -1,8 +1,17 @@
 import Tone from 'tone'
 import { Time, Velocity } from '../../types/timeAndSpace'
 
+export type ViktorToneOptions = Partial<typeof defaults>
+
+export class ViktorTonePoly extends Tone.PolySynth {
+    constructor(polyphony: number = 4, options: ViktorToneOptions = {}) {
+        super(polyphony, ViktorTone)
+        this.set(options)
+    }
+}
+
 export class ViktorTone extends Tone.Monophonic {
-    constructor(options: Partial<typeof defaults> = {}) {
+    constructor(options: ViktorToneOptions = {}) {
         super(options)
 
         options = Tone.defaultArg(options, defaults)

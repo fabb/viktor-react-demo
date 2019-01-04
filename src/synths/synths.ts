@@ -1,7 +1,7 @@
 import Tone from 'tone'
 import { Note, Time, Velocity } from '../../types/timeAndSpace'
 import * as NV1Engine from 'viktor-nv1-engine'
-import { ViktorTone } from '../synths/ViktorTone'
+import { ViktorTonePoly } from '../synths/ViktorTone'
 
 const midiNoteOn = 144
 const midiNoteOff = 128
@@ -19,7 +19,7 @@ export const createSynths = (audioContext: any, viktorStore: any) => {
     const bassSynth = new Tone.Synth().toMaster()
     const kickSynth = new Tone.MembraneSynth().toMaster()
     const hhSynth = new Tone.MetalSynth().toMaster()
-    const viktorToneSynth = new ViktorTone().toMaster()
+    const viktorToneSynth = new ViktorTonePoly().toMaster()
 
     function fakeAudioContextConstructor() {
         return audioContext
@@ -112,7 +112,7 @@ export const createSynths = (audioContext: any, viktorStore: any) => {
                 viktorToneSynth.triggerAttack(note, time, velocity)
             },
             triggerRelease: (note, time) => {
-                viktorToneSynth.triggerRelease(time)
+                viktorToneSynth.triggerRelease(note, time)
             },
             triggerAttackRelease: (note, duration, time, velocity) => {
                 viktorToneSynth.triggerAttackRelease(note, duration, time, velocity)
