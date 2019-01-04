@@ -6,7 +6,7 @@ import { ViktorTone } from '../synths/ViktorTone'
 const midiNoteOn = 144
 const midiNoteOff = 128
 
-export type SynthId = 'bass' | 'kick' | 'hh' | 'viktor' | 'viktorTone'
+export type SynthId = 'Tone Synth' | 'Tone MembraneSynth' | 'Tone MetalSynth' | 'Viktor' | 'ViktorTone Synth'
 
 export interface Synth {
     synthObject: any
@@ -34,7 +34,7 @@ export const createSynths = (audioContext: any, viktorStore: any) => {
     viktorDawEngine.loadPatch(patch)
 
     const synths: { [K in SynthId]?: Synth } = {
-        bass: {
+        'Tone Synth': {
             synthObject: bassSynth,
             triggerAttack: (note, time, velocity) => {
                 bassSynth.triggerAttack(note, time, velocity)
@@ -46,7 +46,7 @@ export const createSynths = (audioContext: any, viktorStore: any) => {
                 bassSynth.triggerAttackRelease(note, duration, time, velocity)
             },
         },
-        kick: {
+        'Tone MembraneSynth': {
             synthObject: kickSynth,
             triggerAttack: (note, time, velocity) => {
                 kickSynth.triggerAttack(note, time, velocity)
@@ -58,7 +58,7 @@ export const createSynths = (audioContext: any, viktorStore: any) => {
                 kickSynth.triggerAttackRelease(note, duration, time, velocity)
             },
         },
-        hh: {
+        'Tone MetalSynth': {
             synthObject: hhSynth,
             triggerAttack: (note, time, velocity) => {
                 hhSynth.triggerAttack(time, velocity)
@@ -70,7 +70,7 @@ export const createSynths = (audioContext: any, viktorStore: any) => {
                 hhSynth.triggerAttackRelease(duration, time, velocity)
             },
         },
-        viktor: {
+        Viktor: {
             synthObject: viktorDawEngine,
             triggerAttack: (note, time, velocity) => {
                 // TODO use time value, since the time of attack needs to be scheduled using AudioParams
@@ -106,7 +106,7 @@ export const createSynths = (audioContext: any, viktorStore: any) => {
                 }, durationInSeconds * 1000)
             },
         },
-        viktorTone: {
+        'ViktorTone Synth': {
             synthObject: viktorToneSynth,
             triggerAttack: (note, time, velocity) => {
                 viktorToneSynth.triggerAttack(note, time, velocity)

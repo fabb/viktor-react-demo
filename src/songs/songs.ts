@@ -6,10 +6,10 @@ export const loadSong1 = (synths: { [K in SynthId]?: Synth }) => {
     Tone.Transport.cancel()
     Tone.Transport.bpm.value = 140
 
-    const bassSynth = synths['bass']!
-    const kickSynth = synths['kick']!
-    const hhSynth = synths['hh']!
-    const viktorSynth = synths['viktor']!
+    const bassSynth = synths['Tone Synth']!
+    const kickSynth = synths['Tone MembraneSynth']!
+    const hhSynth = synths['Tone MetalSynth']!
+    const viktorSynth = synths['Viktor']!
 
     new Tone.Sequence(
         (time: Time, note: Note) => {

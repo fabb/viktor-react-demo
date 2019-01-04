@@ -15,12 +15,12 @@ export const ToneSynthUI = (props: ToneSynthContainerRenderFuncProps) => (
 
 const SynthSpecificUI = (props: ToneSynthContainerRenderFuncProps) => {
     switch (props.selectedSynthId) {
-        case 'bass':
-        case 'kick':
-        case 'hh':
-        case 'viktorTone':
+        case 'Tone Synth':
+        case 'Tone MembraneSynth':
+        case 'Tone MetalSynth':
+        case 'ViktorTone Synth':
             return null // no UI yet
-        case 'viktor':
+        case 'Viktor':
             return (
                 <div className="default-margins">
                     <Select
