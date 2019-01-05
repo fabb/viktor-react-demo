@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Tone from 'tone'
 import { Velocity, MidiNote } from '../../types/timeAndSpace'
-import { SynthId, Synth, createSynths } from '../synths/synths'
+import { SynthId, Synth, createSynths, SynthParameter } from '../synths/synths'
 import { loadSong1 } from '../songs/songs'
 
 export interface ToneSynthContainerRenderFuncProps {
@@ -12,6 +12,8 @@ export interface ToneSynthContainerRenderFuncProps {
     synthIds: SynthId[]
     selectedSynthId: SynthId
     onSelectedSynthChange: (x: { newSynthId: SynthId }) => void
+    synthParameters: { [K in SynthId]?: SynthParameter[] }
+    onChangeParameter: (synthId: SynthId, parameterName: string, parameterValue: any) => void
     viktorParameters: ViktorParameters
 }
 
@@ -73,7 +75,7 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
             {
                 audioContext: audioContext,
                 synths: synths,
-                selectedSynthId: 'ViktorTone Synth',
+                selectedSynthId: 'Tone Synth',
                 viktorDawEngine: viktorDawEngine,
                 viktorPatchLibrary: viktorPatchLibrary,
             },
@@ -150,10 +152,16 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
         })
     }
 
+    onChangeParameter = (synthId: SynthId, parameterName: string, parameterValue: any) => {
+        const synth = this.state.synths[synthId]
+        synth && synth.onChangeParameter(parameterName, parameterValue)
+    }
+
     render() {
         const viktorPatchLibrary = this.state.viktorPatchLibrary
         const viktorPatchNames = viktorPatchLibrary && viktorPatchLibrary.getDefaultNames && viktorPatchLibrary.getDefaultNames()
         const viktorSelectedPatchName = viktorPatchLibrary && viktorPatchLibrary.getSelected && viktorPatchLibrary.getSelected().name
+        const synthParameters: { [K in SynthId]?: SynthParameter[] } = Object.assign({}, ...Object.keys(this.state.synths).map(k => ({ [k]: this.state.synths[k].parameters })))
 
         const renderFuncProps: ToneSynthContainerRenderFuncProps = {
             noteOn: this.noteOn,
@@ -163,6 +171,8 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
             synthIds: Object.keys(this.state.synths) as SynthId[],
             selectedSynthId: this.state.selectedSynthId,
             onSelectedSynthChange: this.onSelectedSynthChange,
+            synthParameters: synthParameters,
+            onChangeParameter: this.onChangeParameter,
             viktorParameters: {
                 patchNames: viktorPatchNames,
                 selectedPatchName: viktorSelectedPatchName,

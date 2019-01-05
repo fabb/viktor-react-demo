@@ -13,7 +13,20 @@ export interface Synth {
     triggerAttack: (note: Note, time?: Time, velocity?: Velocity) => void
     triggerRelease: (note: Note, time?: Time) => void
     triggerAttackRelease: (note: Note, duration: Time, time?: Time, velocity?: Velocity) => void
+    parameters: SynthParameter[]
+    onChangeParameter: (parameterName: string, parameterValue: any) => void
 }
+
+export interface SynthParameter {
+    name: string
+    description: string
+    controlType: SynthParameterControlType
+    value: any
+    values: any[]
+    // TODO ranges for knobs
+}
+
+export type SynthParameterControlType = 'select'
 
 export const createSynths = (audioContext: any, viktorStore: any) => {
     const bassSynth = new Tone.Synth().toMaster()
@@ -45,6 +58,16 @@ export const createSynths = (audioContext: any, viktorStore: any) => {
             triggerAttackRelease: (note, duration, time, velocity) => {
                 bassSynth.triggerAttackRelease(note, duration, time, velocity)
             },
+            parameters: [
+                {
+                    name: 'oscillator.type',
+                    description: 'Oscillator Type',
+                    controlType: 'select',
+                    value: bassSynth.oscillator.type,
+                    values: omniOscillatorTypes(),
+                },
+            ],
+            onChangeParameter: (parameterName, parameterValue) => setSynthParameterValue(bassSynth, parameterName, parameterValue),
         },
         'Tone MembraneSynth': {
             synthObject: kickSynth,
@@ -57,6 +80,8 @@ export const createSynths = (audioContext: any, viktorStore: any) => {
             triggerAttackRelease: (note, duration, time, velocity) => {
                 kickSynth.triggerAttackRelease(note, duration, time, velocity)
             },
+            parameters: [],
+            onChangeParameter: (parameterName, parameterValue) => {},
         },
         'Tone MetalSynth': {
             synthObject: hhSynth,
@@ -69,6 +94,8 @@ export const createSynths = (audioContext: any, viktorStore: any) => {
             triggerAttackRelease: (note, duration, time, velocity) => {
                 hhSynth.triggerAttackRelease(duration, time, velocity)
             },
+            parameters: [],
+            onChangeParameter: (parameterName, parameterValue) => {},
         },
         Viktor: {
             synthObject: viktorDawEngine,
@@ -105,6 +132,8 @@ export const createSynths = (audioContext: any, viktorStore: any) => {
                     })
                 }, durationInSeconds * 1000)
             },
+            parameters: [],
+            onChangeParameter: (parameterName, parameterValue) => {},
         },
         'ViktorTone Synth': {
             synthObject: viktorToneSynth,
@@ -117,8 +146,30 @@ export const createSynths = (audioContext: any, viktorStore: any) => {
             triggerAttackRelease: (note, duration, time, velocity) => {
                 viktorToneSynth.triggerAttackRelease(note, duration, time, velocity)
             },
+            parameters: [],
+            onChangeParameter: (parameterName, parameterValue) => {},
         },
     }
 
     return { synths, viktorDawEngine, viktorPatchLibrary }
+}
+
+const setSynthParameterValue = (synth: any, parameterName: string, parameterValue: any) => {
+    const parameterParts = parameterName.split('.')
+    const allButLastParameterParts = parameterParts.slice(0, parameterParts.length - 1)
+    const lastParameterPart = parameterParts[parameterParts.length - 1]
+    const previousToLastObject = allButLastParameterParts.reduce((previous, current) => {
+        return previous[current]
+    }, synth)
+    previousToLastObject[lastParameterPart] = parameterValue
+
+    // FIXME update state so the change is reflected in the UI as well
+}
+
+const omniOscillatorTypes = (): string[] => {
+    const basicTypes = ['sine', 'square', 'triangle', 'sawtooth']
+    const prefixesForBasics = ['', 'fm', 'am', 'fat']
+    const prefixedBasicTypes = prefixesForBasics.flatMap(prefix => basicTypes.map(basicType => prefix + basicType))
+    const advancedTypes = ['pwm', 'pulse']
+    return prefixedBasicTypes.concat(advancedTypes)
 }

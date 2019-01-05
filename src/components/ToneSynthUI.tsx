@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { ToneSynthContainerRenderFuncProps } from './ToneSynthContainer'
 import { Select } from './Select'
+import { SynthParameter, SynthId } from '../synths/synths'
 import '../App.css'
 
 export const ToneSynthUI = (props: ToneSynthContainerRenderFuncProps) => (
@@ -14,12 +15,19 @@ export const ToneSynthUI = (props: ToneSynthContainerRenderFuncProps) => (
 )
 
 const SynthSpecificUI = (props: ToneSynthContainerRenderFuncProps) => {
+    const synthParameters = props.synthParameters[props.selectedSynthId] || []
     switch (props.selectedSynthId) {
         case 'Tone Synth':
         case 'Tone MembraneSynth':
         case 'Tone MetalSynth':
         case 'ViktorTone Synth':
-            return null // no UI yet
+            return (
+                <React.Fragment>
+                    {synthParameters.map(synthParameter => (
+                        <SynthParameterUI key={synthParameter.name} synthId={props.selectedSynthId} synthParameter={synthParameter} onChangeParameter={props.onChangeParameter} />
+                    ))}
+                </React.Fragment>
+            )
         case 'Viktor':
             return (
                 <div className="default-margins">
@@ -29,6 +37,29 @@ const SynthSpecificUI = (props: ToneSynthContainerRenderFuncProps) => {
                         selectValues={props.viktorParameters.patchNames}
                         selectedValue={props.viktorParameters.selectedPatchName}
                         onSelectedValueChange={({ newSelectedValue }) => props.viktorParameters.onPatchChange({ newPatchName: newSelectedValue })}
+                    />
+                </div>
+            )
+    }
+}
+
+interface SynthParameterUIProps {
+    synthId: SynthId
+    synthParameter: SynthParameter
+    onChangeParameter: (synthId: SynthId, parameterName: string, parameterValue: any) => void
+}
+
+const SynthParameterUI = (props: SynthParameterUIProps) => {
+    switch (props.synthParameter.controlType) {
+        case 'select':
+            return (
+                <div className="default-margins">
+                    <Select
+                        id={`synth-parameter-${props.synthParameter.name.replace('.', '-')}`}
+                        label={props.synthParameter.description}
+                        selectValues={props.synthParameter.values}
+                        selectedValue={props.synthParameter.value}
+                        onSelectedValueChange={({ newSelectedValue }) => props.onChangeParameter(props.synthId, props.synthParameter.name, newSelectedValue)}
                     />
                 </div>
             )
