@@ -2,6 +2,7 @@ import * as React from 'react'
 import { ToneSynthContainerRenderFuncProps } from './ToneSynthContainer'
 import { Select } from './Select'
 import { SynthParameter, SynthId } from '../synths/synths'
+import { Keyboard } from './Keyboard'
 import '../App.css'
 
 export const ToneSynthUI = (props: ToneSynthContainerRenderFuncProps) => (
@@ -10,7 +11,15 @@ export const ToneSynthUI = (props: ToneSynthContainerRenderFuncProps) => (
             <button onClick={props.startSong}>Start Song</button>
             <button onClick={props.stopSong}>Stop Song</button>
         </div>
+        <Select
+            id="synth_select"
+            label="Synth"
+            selectValues={props.synthIds}
+            selectedValue={props.selectedSynthId}
+            onSelectedValueChange={({ newSelectedValue }) => props.onSelectedSynthChange({ newSynthId: newSelectedValue as SynthId })}
+        />
         <SynthSpecificUI {...props} />
+        <Keyboard {...props} />
     </div>
 )
 
