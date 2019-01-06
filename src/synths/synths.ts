@@ -2,6 +2,7 @@ import Tone from 'tone'
 import { Note, Time, Velocity } from '../../types/timeAndSpace'
 import * as NV1Engine from 'viktor-nv1-engine'
 import { ViktorTonePoly } from '../synths/ViktorTone'
+import update from 'immutability-helper'
 
 const midiNoteOn = 144
 const midiNoteOff = 128
@@ -25,7 +26,7 @@ export interface SynthParameter {
     values: ParameterValues
 }
 
-export type SynthParameterControlType = 'select'
+export type SynthParameterControlType = 'select' | 'knob'
 
 export type ParameterValues = DiscreteParameterValues | ParameterValueRange
 export type DiscreteParameterValues = { type: 'DiscreteParameterValues'; values: any[] }
@@ -50,7 +51,8 @@ interface ViktorSynthContainer {
     viktorStore: any
 }
 
-type ViktorSynthParameterName = 'patch' | string
+// TODO make dynamic
+type ViktorSynthParameterName = 'patch' | 'instruments.synth.oscillator.osc2.fineDetune'
 
 export const createSynths = (audioContext: any) => {
     const bassSynth = new Tone.Synth().toMaster()
@@ -177,9 +179,16 @@ export const createSynths = (audioContext: any) => {
                     value: () => viktorPatchLibrary.getSelected().name,
                     values: { type: 'DiscreteParameterValues', values: viktorPatchLibrary.getDefaultNames() },
                 },
+                {
+                    name: 'instruments.synth.oscillator.osc2.fineDetune',
+                    description: 'OSC2 Detune',
+                    controlType: 'knob',
+                    value: () => viktorDawEngine.instruments[0].oscillatorSettings.osc2.fineDetune.value, // TODO make dynamic
+                    values: { type: 'ParameterValueRange', valueRange: { min: -800, max: 800 } }, // TODO read range from RANGE_LIBRARY
+                },
             ],
             onChangeParameter: (parameterName, parameterValue) => {
-                setViktorParameterValue(viktorSynthContainer, parameterName, parameterValue)
+                setViktorParameterValue(viktorSynthContainer, parameterName as ViktorSynthParameterName, parameterValue)
             },
         },
         'ViktorTone Synth': {
@@ -212,10 +221,18 @@ const setSynthParameterValue = (synth: any, parameterName: string, parameterValu
 }
 
 const setViktorParameterValue = (synth: ViktorSynthContainer, parameterName: ViktorSynthParameterName, parameterValue: any) => {
-    if (parameterName === 'patch') {
-        setViktorPatch(synth, parameterValue)
-    } else {
-        console.log(`unhandled viktor parameter ${parameterName}`)
+    switch (parameterName) {
+        case 'patch':
+            setViktorPatch(synth, parameterValue)
+            break
+        case 'instruments.synth.oscillator.osc2.fineDetune':
+            const instrument = synth.viktorDawEngine.instruments[0]
+            const newOscSettings = update(instrument.oscillatorSettings, { osc2: { fineDetune: { value: { $set: parameterValue } } } })
+            // oscillatorSettings is a defined property with a setter, therefore we need to modify it like this, and cannot use update
+            instrument.oscillatorSettings = newOscSettings
+            break
+        default:
+            console.log(`unhandled viktor parameter ${parameterName}`)
     }
 }
 

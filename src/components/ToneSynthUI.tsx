@@ -1,8 +1,9 @@
 import * as React from 'react'
 import { ToneSynthContainerRenderFuncProps } from './ToneSynthContainer'
 import { Select } from './Select'
-import { SynthParameter, SynthId, isDiscreteParameterValues } from '../synths/synths'
+import { SynthParameter, SynthId, isDiscreteParameterValues, isParameterValueRange } from '../synths/synths'
 import { Keyboard } from './Keyboard'
+import { Knob } from 'react-rotary-knob'
 import '../App.css'
 
 export const ToneSynthUI = (props: ToneSynthContainerRenderFuncProps) => (
@@ -57,6 +58,25 @@ const SynthParameterUI = (props: SynthParameterUIProps) => {
                 )
             } else {
                 throw 'select only works with DiscreteParameterValues'
+            }
+        case 'knob':
+            if (isParameterValueRange(props.synthParameter.values)) {
+                return (
+                    <div className="default-margins centering">
+                        <div className="column-flex">
+                            <Knob
+                                onChange={(newValue: number) => props.onChangeParameter(props.synthId, props.synthParameter.name, newValue)}
+                                value={props.synthParameter.value()}
+                                min={props.synthParameter.values.valueRange.min}
+                                max={props.synthParameter.values.valueRange.max}
+                            />
+                            <p>{props.synthParameter.description}</p>
+                            <p>{props.synthParameter.value().toFixed(2)}</p>
+                        </div>
+                    </div>
+                )
+            } else {
+                throw 'TODO discrete knobs'
             }
     }
 }

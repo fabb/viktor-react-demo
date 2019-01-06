@@ -5,3 +5,23 @@
 .default-margins {
     margin: 8px;
 }
+
+.centering {
+    display: flex;
+    justify-content: center;
+}
+
+.column-flex {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: whitesmoke;
+    border: 1px solid gainsboro;
+    border-radius: 4px;
+    padding: 4px;
+    color: #333333;
+}
+
+.column-flex > * {
+    margin: 0;
+}
