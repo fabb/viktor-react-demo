@@ -25,31 +25,13 @@ export const ToneSynthUI = (props: ToneSynthContainerRenderFuncProps) => (
 
 const SynthSpecificUI = (props: ToneSynthContainerRenderFuncProps) => {
     const synthParameters = props.synthParameters[props.selectedSynthId] || []
-    switch (props.selectedSynthId) {
-        case 'Tone Synth':
-        case 'Tone MembraneSynth':
-        case 'Tone MetalSynth':
-        case 'ViktorTone Synth':
-            return (
-                <React.Fragment>
-                    {synthParameters.map(synthParameter => (
-                        <SynthParameterUI key={synthParameter.name} synthId={props.selectedSynthId} synthParameter={synthParameter} onChangeParameter={props.onChangeParameter} />
-                    ))}
-                </React.Fragment>
-            )
-        case 'Viktor':
-            return (
-                <div className="default-margins">
-                    <Select
-                        id="patch"
-                        label="Patch"
-                        selectValues={props.viktorParameters.patchNames}
-                        selectedValue={props.viktorParameters.selectedPatchName}
-                        onSelectedValueChange={({ newSelectedValue }) => props.viktorParameters.onPatchChange({ newPatchName: newSelectedValue })}
-                    />
-                </div>
-            )
-    }
+    return (
+        <React.Fragment>
+            {synthParameters.map(synthParameter => (
+                <SynthParameterUI key={synthParameter.name} synthId={props.selectedSynthId} synthParameter={synthParameter} onChangeParameter={props.onChangeParameter} />
+            ))}
+        </React.Fragment>
+    )
 }
 
 interface SynthParameterUIProps {

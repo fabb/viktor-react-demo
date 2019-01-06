@@ -28,7 +28,15 @@ export interface SynthParameter {
 
 export type SynthParameterControlType = 'select'
 
-export const createSynths = (audioContext: any, viktorStore: any) => {
+interface ViktorSynthContainer {
+    viktorDawEngine: any
+    viktorPatchLibrary: any
+    viktorStore: any
+}
+
+type ViktorSynthParameterName = 'patch' | string
+
+export const createSynths = (audioContext: any) => {
     const bassSynth = new Tone.Synth().toMaster()
     const kickSynth = new Tone.MembraneSynth().toMaster()
     const hhSynth = new Tone.MetalSynth().toMaster()
@@ -36,6 +44,17 @@ export const createSynths = (audioContext: any, viktorStore: any) => {
 
     function fakeAudioContextConstructor() {
         return audioContext
+    }
+    const viktorStore = {
+        get: () => {
+            // nothing
+        },
+        set: () => {
+            // nothing
+        },
+        remove: () => {
+            // nothing
+        },
     }
     const { dawEngine, patchLibrary } = NV1Engine.create(fakeAudioContextConstructor, viktorStore)
     const viktorDawEngine = dawEngine
@@ -45,6 +64,8 @@ export const createSynths = (audioContext: any, viktorStore: any) => {
     viktorPatchLibrary.selectPatch(patchNames[2])
     const patch = viktorPatchLibrary.getSelected().patch
     viktorDawEngine.loadPatch(patch)
+
+    const viktorSynthContainer: ViktorSynthContainer = { viktorDawEngine, viktorPatchLibrary, viktorStore }
 
     const synths: { [K in SynthId]?: Synth } = {
         'Tone Synth': {
@@ -98,7 +119,7 @@ export const createSynths = (audioContext: any, viktorStore: any) => {
             onChangeParameter: (parameterName, parameterValue) => {},
         },
         Viktor: {
-            synthObject: viktorDawEngine,
+            synthObject: viktorSynthContainer,
             triggerAttack: (note, time, velocity) => {
                 // TODO use time value, since the time of attack needs to be scheduled using AudioParams
 
@@ -132,8 +153,18 @@ export const createSynths = (audioContext: any, viktorStore: any) => {
                     })
                 }, durationInSeconds * 1000)
             },
-            parameters: [],
-            onChangeParameter: (parameterName, parameterValue) => {},
+            parameters: [
+                {
+                    name: 'patch',
+                    description: 'Patch',
+                    controlType: 'select',
+                    value: () => viktorPatchLibrary.getSelected().name,
+                    values: viktorPatchLibrary.getDefaultNames(),
+                },
+            ],
+            onChangeParameter: (parameterName, parameterValue) => {
+                setViktorParameterValue(viktorSynthContainer, parameterName, parameterValue)
+            },
         },
         'ViktorTone Synth': {
             synthObject: viktorToneSynth,
@@ -151,7 +182,7 @@ export const createSynths = (audioContext: any, viktorStore: any) => {
         },
     }
 
-    return { synths, viktorDawEngine, viktorPatchLibrary }
+    return synths
 }
 
 const setSynthParameterValue = (synth: any, parameterName: string, parameterValue: any) => {
@@ -162,6 +193,22 @@ const setSynthParameterValue = (synth: any, parameterName: string, parameterValu
         return previous[current]
     }, synth)
     previousToLastObject[lastParameterPart] = parameterValue
+}
+
+const setViktorParameterValue = (synth: ViktorSynthContainer, parameterName: ViktorSynthParameterName, parameterValue: any) => {
+    if (parameterName === 'patch') {
+        setViktorPatch(synth, parameterValue)
+    } else {
+        console.log(`unhandled viktor parameter ${parameterName}`)
+    }
+}
+
+const setViktorPatch = (synth: ViktorSynthContainer, newPatchName: string) => {
+    const dawEngine = synth.viktorDawEngine
+    const patchLibrary = synth.viktorPatchLibrary
+    patchLibrary.selectPatch(newPatchName)
+    const patch = patchLibrary.getSelected().patch
+    dawEngine.loadPatch(patch)
 }
 
 const omniOscillatorTypes = (): string[] => {
