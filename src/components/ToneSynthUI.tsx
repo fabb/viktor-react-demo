@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { ToneSynthContainerRenderFuncProps } from './ToneSynthContainer'
 import { Select } from './Select'
-import { SynthParameter, SynthId } from '../synths/synths'
+import { SynthParameter, SynthId, isDiscreteParameterValues } from '../synths/synths'
 import { Keyboard } from './Keyboard'
 import '../App.css'
 
@@ -43,16 +43,20 @@ interface SynthParameterUIProps {
 const SynthParameterUI = (props: SynthParameterUIProps) => {
     switch (props.synthParameter.controlType) {
         case 'select':
-            return (
-                <div className="default-margins">
-                    <Select
-                        id={`synth-parameter-${props.synthParameter.name.replace('.', '-')}`}
-                        label={props.synthParameter.description}
-                        selectValues={props.synthParameter.values}
-                        selectedValue={props.synthParameter.value()}
-                        onSelectedValueChange={({ newSelectedValue }) => props.onChangeParameter(props.synthId, props.synthParameter.name, newSelectedValue)}
-                    />
-                </div>
-            )
+            if (isDiscreteParameterValues(props.synthParameter.values)) {
+                return (
+                    <div className="default-margins">
+                        <Select
+                            id={`synth-parameter-${props.synthParameter.name.replace('.', '-')}`}
+                            label={props.synthParameter.description}
+                            selectValues={props.synthParameter.values.values}
+                            selectedValue={props.synthParameter.value()}
+                            onSelectedValueChange={({ newSelectedValue }) => props.onChangeParameter(props.synthId, props.synthParameter.name, newSelectedValue)}
+                        />
+                    </div>
+                )
+            } else {
+                throw 'select only works with DiscreteParameterValues'
+            }
     }
 }

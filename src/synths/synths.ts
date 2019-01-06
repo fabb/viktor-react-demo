@@ -21,12 +21,28 @@ export interface SynthParameter {
     name: string
     description: string
     controlType: SynthParameterControlType
-    value: () => any
-    values: any[]
-    // TODO ranges for knobs
+    value: () => any // TODO it might be better to not pass the function down to UI components, but rather the evaluated value, so react can only rerender when the value actually changed
+    values: ParameterValues
 }
 
 export type SynthParameterControlType = 'select'
+
+export type ParameterValues = DiscreteParameterValues | ParameterValueRange
+export type DiscreteParameterValues = { type: 'DiscreteParameterValues'; values: any[] }
+export type ParameterValueRange = { type: 'ParameterValueRange'; valueRange: ValueRange }
+
+export const isDiscreteParameterValues = (parameterValues: ParameterValues): parameterValues is DiscreteParameterValues => {
+    return parameterValues.type === 'DiscreteParameterValues'
+}
+
+export const isParameterValueRange = (parameterValues: ParameterValues): parameterValues is ParameterValueRange => {
+    return parameterValues.type === 'ParameterValueRange'
+}
+
+export interface ValueRange {
+    min: number
+    max: number
+}
 
 interface ViktorSynthContainer {
     viktorDawEngine: any
@@ -85,7 +101,7 @@ export const createSynths = (audioContext: any) => {
                     description: 'Oscillator Type',
                     controlType: 'select',
                     value: () => bassSynth.oscillator.type,
-                    values: omniOscillatorTypes(),
+                    values: { type: 'DiscreteParameterValues', values: omniOscillatorTypes() },
                 },
             ],
             onChangeParameter: (parameterName, parameterValue) => setSynthParameterValue(bassSynth, parameterName, parameterValue),
@@ -159,7 +175,7 @@ export const createSynths = (audioContext: any) => {
                     description: 'Patch',
                     controlType: 'select',
                     value: () => viktorPatchLibrary.getSelected().name,
-                    values: viktorPatchLibrary.getDefaultNames(),
+                    values: { type: 'DiscreteParameterValues', values: viktorPatchLibrary.getDefaultNames() },
                 },
             ],
             onChangeParameter: (parameterName, parameterValue) => {
