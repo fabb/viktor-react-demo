@@ -154,7 +154,18 @@ export class ToneSynthContainer extends React.Component<ToneSynthContainerProps,
 
     onChangeParameter = (synthId: SynthId, parameterName: string, parameterValue: any) => {
         const synth = this.state.synths[synthId]
-        synth && synth.onChangeParameter(parameterName, parameterValue)
+        if (!synth) {
+            return
+        }
+
+        synth.onChangeParameter(parameterName, parameterValue)
+
+        // this currently works to update the state, but might break in the future due to some internal react update
+        this.setState(oldState => {
+            return {
+                synths: oldState.synths,
+            }
+        })
     }
 
     render() {

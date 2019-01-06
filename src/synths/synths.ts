@@ -21,7 +21,7 @@ export interface SynthParameter {
     name: string
     description: string
     controlType: SynthParameterControlType
-    value: any
+    value: () => any
     values: any[]
     // TODO ranges for knobs
 }
@@ -63,7 +63,7 @@ export const createSynths = (audioContext: any, viktorStore: any) => {
                     name: 'oscillator.type',
                     description: 'Oscillator Type',
                     controlType: 'select',
-                    value: bassSynth.oscillator.type,
+                    value: () => bassSynth.oscillator.type,
                     values: omniOscillatorTypes(),
                 },
             ],
@@ -162,8 +162,6 @@ const setSynthParameterValue = (synth: any, parameterName: string, parameterValu
         return previous[current]
     }, synth)
     previousToLastObject[lastParameterPart] = parameterValue
-
-    // FIXME update state so the change is reflected in the UI as well
 }
 
 const omniOscillatorTypes = (): string[] => {

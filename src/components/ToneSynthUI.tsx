@@ -67,7 +67,7 @@ const SynthParameterUI = (props: SynthParameterUIProps) => {
                         id={`synth-parameter-${props.synthParameter.name.replace('.', '-')}`}
                         label={props.synthParameter.description}
                         selectValues={props.synthParameter.values}
-                        selectedValue={props.synthParameter.value}
+                        selectedValue={props.synthParameter.value()}
                         onSelectedValueChange={({ newSelectedValue }) => props.onChangeParameter(props.synthId, props.synthParameter.name, newSelectedValue)}
                     />
                 </div>
